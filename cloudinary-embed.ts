@@ -87,9 +87,16 @@ function toPublicId(relativePath: string): string {
 
 export async function uploadToCloudinary(
   directoryPath: string,
-  { force = false }: { force?: boolean } = {},
+  {
+    force = false,
+    verbose = false,
+    root,
+  }: { force?: boolean; verbose?: boolean; root?: string } = {},
 ) {
   const absoluteDir = path.resolve(directoryPath);
+  const publicIdPrefix = root
+    ? path.relative(path.resolve(root), absoluteDir)
+    : "";
 
   // Validate directory exists
   try {
@@ -150,12 +157,22 @@ export async function uploadToCloudinary(
   if (toUpload.length === 0) {
     console.log(`Done. 0 uploaded, ${unchanged} unchanged.`);
     await saveManifest(manifestPath, manifest);
+    if (verbose) {
+      console.log();
+      for (const relativePath of files) {
+        const entry = manifest.files[relativePath];
+        if (entry) {
+          const publicId = path.join(publicIdPrefix, toPublicId(relativePath));
+          console.log(`${publicId}  →  ${entry.secureUrl}`);
+        }
+      }
+    }
     return;
   }
 
   let uploaded = 0;
   for (const { relativePath, absolutePath, hash, reason } of toUpload) {
-    const publicId = toPublicId(relativePath);
+    const publicId = path.join(publicIdPrefix, toPublicId(relativePath));
     console.log(`Uploading ${relativePath} (${reason})...`);
     try {
       const result = await cloudinary.uploader.upload(absolutePath, {
@@ -182,6 +199,17 @@ export async function uploadToCloudinary(
   console.log(
     `Done. ${uploaded} uploaded (${newCount} new, ${changedCount} changed), ${unchanged} unchanged.`,
   );
+
+  if (verbose) {
+    console.log();
+    for (const relativePath of files) {
+      const entry = manifest.files[relativePath];
+      if (entry) {
+        const publicId = path.join(publicIdPrefix, toPublicId(relativePath));
+        console.log(`${publicId}  →  ${entry.secureUrl}`);
+      }
+    }
+  }
 }
 
 async function main() {
@@ -192,8 +220,10 @@ async function main() {
     process.exit(1);
   }
   const force = args.force as boolean | undefined;
+  const verbose = args.verbose as boolean | undefined;
+  const root = args.root as string | undefined;
 
-  await uploadToCloudinary(directory, { force });
+  await uploadToCloudinary(directory, { force, verbose, root });
 }
 
 // Only run main if this is the entry point

@@ -25,6 +25,19 @@ To force re-upload all files regardless of manifest state:
 node cloudinary-embed.ts --directory ./your-images --force
 ```
 
+To preserve the directory structure as Cloudinary public IDs, pass the parent as `--root`:
+
+```sh
+node cloudinary-embed.ts --directory ../cloudinary-assets/Pictures/AristovWeb --root ../cloudinary-assets
+# public ID becomes: Pictures/AristovWeb/NikolaiAlki
+```
+
+To print public IDs and URLs for all files (useful for embedding in webpages):
+
+```sh
+node cloudinary-embed.ts --directory ./your-images --verbose
+```
+
 ## How it works
 
 - Scans `--directory` recursively for image files (`.jpg`, `.png`, `.webp`, `.svg`, etc.)
