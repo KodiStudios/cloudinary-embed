@@ -1,0 +1,18 @@
+{
+  // Node 24: target, module, lib, strict, etc.
+  "extends": "@tsconfig/node24/tsconfig.json",
+  "compilerOptions": {
+    // Type-check only, no compiled output (Node runs .ts directly)
+    "noEmit": true,
+
+    // Only allow syntax that Node can strip at runtime (no enums, namespaces, etc.)
+    "erasableSyntaxOnly": true,
+
+    // Resolve .ts imports like "../index.ts" used in tests
+    "rewriteRelativeImportExtensions": true,
+
+    // Enforce "import type" for type-only imports (consistent with ESM)
+    "verbatimModuleSyntax": true
+  },
+  "include": ["*.ts"]
+}
