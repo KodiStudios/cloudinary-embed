@@ -175,8 +175,11 @@ export async function uploadToCloudinary(
     const publicId = path.join(publicIdPrefix, toPublicId(relativePath));
     console.log(`Uploading ${relativePath} (${reason})...`);
     try {
+      const folderPart = path.dirname(publicId);
+      const filenamePart = path.basename(publicId);
       const result = await cloudinary.uploader.upload(absolutePath, {
-        public_id: publicId,
+        ...(folderPart !== "." && { folder: folderPart }),
+        public_id: filenamePart,
         overwrite: true,
         resource_type: "image",
       });
