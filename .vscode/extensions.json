@@ -1,0 +1,6 @@
+{
+  "recommendations": [
+    // Code formatter
+    "esbenp.prettier-vscode"
+  ]
+}
