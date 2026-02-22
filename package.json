@@ -16,6 +16,7 @@
     "update": "yarn up '*@latest' '@types/node@^24'"
   },
   "dependencies": {
+    "cloudinary": "^2.9.0",
     "minimist": "^1.2.8"
   },
   "devDependencies": {
