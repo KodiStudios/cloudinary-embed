@@ -35,11 +35,28 @@ __metadata:
     "@tsconfig/node24": "npm:^24.0.4"
     "@types/minimist": "npm:^1.2.5"
     "@types/node": "npm:^24"
+    cloudinary: "npm:^2.9.0"
     minimist: "npm:^1.2.8"
     prettier: "npm:^3.8.1"
     typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
+
+"cloudinary@npm:^2.9.0":
+  version: 2.9.0
+  resolution: "cloudinary@npm:2.9.0"
+  dependencies:
+    lodash: "npm:^4.17.21"
+  checksum: 10c0/263e843b3ca6446ece4312dc2b84892aaeab35847b0fdbd0e80086ce2485a755f647e02ef60e4ebcf4e700f223d91efb8afcc1f7ee5bc41f8973f3bb34fe573f
+  languageName: node
+  linkType: hard
+
+"lodash@npm:^4.17.21":
+  version: 4.17.23
+  resolution: "lodash@npm:4.17.23"
+  checksum: 10c0/1264a90469f5bb95d4739c43eb6277d15b6d9e186df4ac68c3620443160fc669e2f14c11e7d8b2ccf078b81d06147c01a8ccced9aab9f9f63d50dcf8cace6bf6
+  languageName: node
+  linkType: hard
 
 "minimist@npm:^1.2.8":
   version: 1.2.8
