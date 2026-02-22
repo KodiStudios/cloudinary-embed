@@ -19,6 +19,12 @@ export CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
 node cloudinary-embed.ts --directory ./your-images
 ```
 
+To force re-upload all files regardless of manifest state:
+
+```sh
+node cloudinary-embed.ts --directory ./your-images --force
+```
+
 ## How it works
 
 - Scans `--directory` recursively for image files (`.jpg`, `.png`, `.webp`, `.svg`, etc.)

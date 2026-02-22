@@ -85,7 +85,10 @@ function toPublicId(relativePath: string): string {
   return path.join(parsed.dir, parsed.name);
 }
 
-export async function uploadToCloudinary(directoryPath: string) {
+export async function uploadToCloudinary(
+  directoryPath: string,
+  { force = false }: { force?: boolean } = {},
+) {
   const absoluteDir = path.resolve(directoryPath);
 
   // Validate directory exists
@@ -135,7 +138,7 @@ export async function uploadToCloudinary(directoryPath: string) {
     const hash = await hashFile(absolutePath);
     const existing = manifest.files[relativePath];
 
-    if (!existing) {
+    if (force || !existing) {
       toUpload.push({ relativePath, absolutePath, hash, reason: "new" });
     } else if (existing.contentHash !== hash) {
       toUpload.push({ relativePath, absolutePath, hash, reason: "changed" });
@@ -188,8 +191,9 @@ async function main() {
     console.error("Error: --directory is required");
     process.exit(1);
   }
+  const force = args.force as boolean | undefined;
 
-  await uploadToCloudinary(directory);
+  await uploadToCloudinary(directory, { force });
 }
 
 // Only run main if this is the entry point
