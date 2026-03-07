@@ -9,22 +9,28 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "tsc && yarn format",
+    "lint": "yarn typecheck && yarn format && yarn eslint",
+    "eslint": "eslint --fix .",
     "format": "prettier --write .",
+    "typecheck": "tsc",
     "//update:yarn": "Updates packageManager field",
     "update:yarn": "corepack use yarn@latest",
     "update": "yarn up '*@latest' '@types/node@^24'"
   },
   "dependencies": {
     "cloudinary": "^2.9.0",
-    "yargs": "^17.7.2"
+    "yargs": "^18.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@tsconfig/node24": "^24.0.4",
     "@types/node": "^24",
-    "@types/yargs": "^17.0.33",
+    "@types/yargs": "^17.0.35",
+    "eslint": "^10.0.3",
+    "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1"
   },
   "engines": {
     "node": ">=24.0.0"
