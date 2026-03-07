@@ -1,7 +1,8 @@
 import fs from "node:fs/promises";
 import { type Dirent } from "node:fs";
 import crypto from "node:crypto";
-import minimist from "minimist";
+import yargs from "yargs/yargs";
+import { hideBin } from "yargs/helpers";
 import path from "node:path";
 import { v2 as cloudinary } from "cloudinary";
 
@@ -216,17 +217,39 @@ export async function uploadToCloudinary(
 }
 
 async function main() {
-  const args = minimist(process.argv.slice(2));
-  const directory = args.directory as string | undefined;
-  if (!directory) {
-    console.error("Error: --directory is required");
-    process.exit(1);
-  }
-  const force = args.force as boolean | undefined;
-  const verbose = args.verbose as boolean | undefined;
-  const root = args.root as string | undefined;
+  const args = await yargs(hideBin(process.argv))
+    .usage("Usage: node cloudinary-embed.ts --directory <path> [options]")
+    .option("directory", {
+      alias: "d",
+      type: "string",
+      demandOption: true,
+      describe: "Directory to scan for images",
+    })
+    .option("root", {
+      alias: "r",
+      type: "string",
+      describe: "Parent directory for computing public ID prefix",
+    })
+    .option("force", {
+      alias: "f",
+      type: "boolean",
+      default: false,
+      describe: "Re-upload all files, ignoring manifest hashes",
+    })
+    .option("verbose", {
+      alias: "v",
+      type: "boolean",
+      default: false,
+      describe: "Print publicId → secureUrl mapping after upload",
+    })
+    .strict()
+    .parse();
 
-  await uploadToCloudinary(directory, { force, verbose, root });
+  await uploadToCloudinary(args.directory, {
+    force: args.force,
+    verbose: args.verbose,
+    root: args.root,
+  });
 }
 
 // Only run main if this is the entry point
