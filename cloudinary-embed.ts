@@ -84,6 +84,10 @@ async function scanDirectory(directoryPath: string): Promise<string[]> {
   return files;
 }
 
+function withAutoFormat(url: string): string {
+  return url.replace("/image/upload/", "/image/upload/f_auto,q_auto/");
+}
+
 function toPublicId(relativePath: string): string {
   const parsed = path.parse(relativePath);
   return path.join(parsed.dir, parsed.name);
@@ -216,12 +220,13 @@ export async function uploadToCloudinary(
         overwrite: true,
         resource_type: "image",
       });
-      console.log(`  → ${result.secure_url}`);
+      const secureUrl = withAutoFormat(result.secure_url);
+      console.log(`  → ${secureUrl}`);
       if (useManifest) {
         manifest.files[relativePath] = {
           contentHash: hash,
           uploadedAt: new Date().toISOString(),
-          secureUrl: result.secure_url,
+          secureUrl,
         };
         await saveManifest(manifestPath, manifest);
       }
