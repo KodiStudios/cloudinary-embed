@@ -216,6 +216,7 @@ export async function uploadToCloudinary(
         overwrite: true,
         resource_type: "image",
       });
+      console.log(`  → ${result.secure_url}`);
       if (useManifest) {
         manifest.files[relativePath] = {
           contentHash: hash,
@@ -292,17 +293,18 @@ async function main() {
     .alias("h", "help")
     .epilog(
       "Examples:\n" +
-        "  Given: ./images/trips/spain/ronda.jpg\n\n" +
-        "  $0 -d ./images\n" +
+        "  Given: ./pix/trips/spain/ronda.jpg\n\n" +
+        "  $0 -d ./pix\n" +
         "    → public ID: trips/spain/ronda\n" +
-        "    → https://res.cloudinary.com/<cloud>/image/upload/trips/spain/ronda.jpg\n\n" +
-        "  $0 -r ./images/trips -d ./images/trips/spain\n" +
-        "    Scans only spain/, -r adds spain/ prefix to public IDs\n" +
+        "    → https://res.cloudinary.com/<cloudid>/image/upload/<vid>/trips/spain/ronda.jpg\n\n" +
+        "  $0 -r ./pix/trips -d ./pix/trips/spain\n" +
+        "    -r root sets leftover 'spain/...' as public IDs\n" +
         "    → public ID: spain/ronda\n" +
-        "    → https://res.cloudinary.com/<cloud>/image/upload/spain/ronda.jpg\n\n" +
-        "  $0 -d ./images -m\n" +
-        "    Save manifest to skip unchanged files on next run\n\n" +
-        "  $0 -d ./images -m -f -v\n" +
+        "    → https://res.cloudinary.com/<cloudid>/image/upload/<vid>/spain/ronda.jpg\n\n" +
+        "  $0 -d ./pix -m\n" +
+        "    Save new manifest file inside of ./pix to skip unchanged files on next run.\n" +
+        "    Manifest file will also contain Urls.\n\n" +
+        "  $0 -d ./pix -m -f -v\n" +
         "    Re-upload all files (ignore manifest) and print URLs\n\n" +
         "Environment:\n" +
         "  CLOUDINARY_URL  Required. Format: cloudinary://api_key:api_secret@cloud_name\n" +

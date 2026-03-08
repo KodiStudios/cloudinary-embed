@@ -7,7 +7,19 @@ Uploads a directory of images to Cloudinary using relative file paths as stable 
 Find Cloudinary **Api Key** and **Secret** Values:  
 [Cloudinary Console](https://console.cloudinary.com/) under **Dashboard → API Keys**.
 
-Set the `CLOUDINARY_URL` environment variable before running:
+Set the `CLOUDINARY_URL` environment variable. The easiest way is to create a `.env` file in the project root (it's already gitignored):
+
+```
+CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
+```
+
+Then pass it to Node with the `--env-file` flag:
+
+```sh
+node --env-file=.env cloudinary-embed.ts -d ./your-images
+```
+
+Alternatively, export it in your shell:
 
 ```sh
 export CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
