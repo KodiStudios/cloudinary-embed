@@ -91,8 +91,14 @@ export async function uploadToCloudinary(
   {
     force = false,
     verbose = false,
-    root,
-  }: { force?: boolean; verbose?: boolean; root?: string } = {},
+    useManifest = false,
+    pathIdRoot: root,
+  }: {
+    force?: boolean;
+    verbose?: boolean;
+    useManifest?: boolean;
+    pathIdRoot?: string;
+  } = {},
 ) {
   const absoluteDir = path.resolve(directoryPath);
   const publicIdPrefix = root
@@ -121,16 +127,20 @@ export async function uploadToCloudinary(
   }
 
   const manifestPath = path.join(absoluteDir, ".cloudinary-manifest.json");
-  const manifest = await loadManifest(manifestPath);
+  const manifest = useManifest
+    ? await loadManifest(manifestPath)
+    : emptyManifest();
 
   const files = await scanDirectory(absoluteDir);
-  const fileSet = new Set(files);
 
-  // Detect deleted files
-  for (const key of Object.keys(manifest.files)) {
-    if (!fileSet.has(key)) {
-      console.log(`Deleted (removed from manifest): ${key}`);
-      delete manifest.files[key];
+  // Detect deleted files (only relevant with manifest)
+  if (useManifest) {
+    const fileSet = new Set(files);
+    for (const key of Object.keys(manifest.files)) {
+      if (!fileSet.has(key)) {
+        console.log(`Deleted (removed from manifest): ${key}`);
+        delete manifest.files[key];
+      }
     }
   }
 
@@ -143,6 +153,12 @@ export async function uploadToCloudinary(
 
   for (const relativePath of files) {
     const absolutePath = path.join(absoluteDir, relativePath);
+
+    if (!useManifest) {
+      toUpload.push({ relativePath, absolutePath, hash: "", reason: "new" });
+      continue;
+    }
+
     const hash = await hashFile(absolutePath);
     const existing = manifest.files[relativePath];
 
@@ -157,7 +173,7 @@ export async function uploadToCloudinary(
 
   if (toUpload.length === 0) {
     console.log(`Done. 0 uploaded, ${unchanged} unchanged.`);
-    await saveManifest(manifestPath, manifest);
+    if (useManifest) await saveManifest(manifestPath, manifest);
     if (verbose) {
       console.log();
       for (const relativePath of files) {
@@ -184,16 +200,18 @@ export async function uploadToCloudinary(
         overwrite: true,
         resource_type: "image",
       });
-      manifest.files[relativePath] = {
-        contentHash: hash,
-        uploadedAt: new Date().toISOString(),
-        secureUrl: result.secure_url,
-      };
+      if (useManifest) {
+        manifest.files[relativePath] = {
+          contentHash: hash,
+          uploadedAt: new Date().toISOString(),
+          secureUrl: result.secure_url,
+        };
+        await saveManifest(manifestPath, manifest);
+      }
       uploaded++;
-      await saveManifest(manifestPath, manifest);
     } catch (err) {
       console.error(`Error uploading ${relativePath}: ${String(err)}`);
-      await saveManifest(manifestPath, manifest);
+      if (useManifest) await saveManifest(manifestPath, manifest);
       process.exit(1);
     }
   }
@@ -217,8 +235,8 @@ export async function uploadToCloudinary(
 }
 
 async function main() {
-  const args = await yargs(hideBin(process.argv))
-    .usage("Usage: node cloudinary-embed.ts --directory <path> [options]")
+  const appArgs = await yargs(hideBin(process.argv))
+    .usage("Usage: $0 --directory <path> [options]")
     .option("directory", {
       alias: "d",
       type: "string",
@@ -230,11 +248,18 @@ async function main() {
       type: "string",
       describe: "Parent directory for computing public ID prefix",
     })
+    .option("manifest", {
+      alias: "m",
+      type: "boolean",
+      default: false,
+      describe:
+        "Save .cloudinary-manifest.json to skip unchanged files on next run",
+    })
     .option("force", {
       alias: "f",
       type: "boolean",
       default: false,
-      describe: "Re-upload all files, ignoring manifest hashes",
+      describe: "Re-upload all files, ignoring manifest hashes (requires -m)",
     })
     .option("verbose", {
       alias: "v",
@@ -242,13 +267,31 @@ async function main() {
       default: false,
       describe: "Print publicId → secureUrl mapping after upload",
     })
+    .alias("h", "help")
+    .epilog(
+      "Examples:\n" +
+        "  Given: ./images/trips/spain/ronda.jpg\n\n" +
+        "  $0 -d ./images\n" +
+        "    → public ID: trips/spain/ronda\n" +
+        "    → https://res.cloudinary.com/<cloud>/image/upload/trips/spain/ronda.jpg\n\n" +
+        "  $0 -r ./images/trips -d ./images/trips/spain\n" +
+        "    Scans only spain/, -r adds spain/ prefix to public IDs\n" +
+        "    → public ID: spain/ronda\n" +
+        "    → https://res.cloudinary.com/<cloud>/image/upload/spain/ronda.jpg\n\n" +
+        "  $0 -d ./images -m\n" +
+        "    Save manifest to skip unchanged files on next run\n\n" +
+        "  $0 -d ./images -m -f -v\n" +
+        "    Re-upload all files (ignore manifest) and print URLs",
+    )
+    .version(false)
     .strict()
     .parse();
 
-  await uploadToCloudinary(args.directory, {
-    force: args.force,
-    verbose: args.verbose,
-    root: args.root,
+  await uploadToCloudinary(appArgs.directory, {
+    force: appArgs.force,
+    verbose: appArgs.verbose,
+    useManifest: appArgs.manifest,
+    pathIdRoot: appArgs.root,
   });
 }
 
