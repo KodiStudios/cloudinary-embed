@@ -18,6 +18,8 @@ const IMAGE_EXTENSIONS = new Set([
   ".tif",
   ".ico",
   ".avif",
+  ".heic",
+  ".heif",
 ]);
 
 interface ManifestEntry {
@@ -70,6 +72,7 @@ async function scanDirectory(directoryPath: string): Promise<string[]> {
   const files: string[] = [];
   for (const entry of entries as Dirent[]) {
     if (!entry.isFile()) continue;
+    if (entry.name.startsWith(".")) continue;
     const ext = path.extname(entry.name).toLowerCase();
     if (!IMAGE_EXTENSIONS.has(ext)) continue;
     const relativePath = path.relative(
@@ -92,11 +95,13 @@ export async function uploadToCloudinary(
     force = false,
     verbose = false,
     useManifest = false,
+    dryRun = false,
     pathIdRoot: root,
   }: {
     force?: boolean;
     verbose?: boolean;
     useManifest?: boolean;
+    dryRun?: boolean;
     pathIdRoot?: string;
   } = {},
 ) {
@@ -114,15 +119,6 @@ export async function uploadToCloudinary(
     }
   } catch {
     console.error(`Error: directory not found: ${directoryPath}`);
-    process.exit(1);
-  }
-
-  // Validate Cloudinary credentials
-  if (!process.env.CLOUDINARY_URL) {
-    console.error(
-      "Error: CLOUDINARY_URL environment variable is not set.\n" +
-        "Set it like: CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name",
-    );
     process.exit(1);
   }
 
@@ -170,6 +166,26 @@ export async function uploadToCloudinary(
   }
 
   const unchanged = files.length - toUpload.length;
+
+  if (dryRun) {
+    for (const { relativePath, reason } of toUpload) {
+      const publicId = path.join(publicIdPrefix, toPublicId(relativePath));
+      console.log(`${relativePath} (${reason}) → ${publicId}`);
+    }
+    console.log(
+      `\nDry run: ${toUpload.length} would be uploaded, ${unchanged} unchanged.`,
+    );
+    return;
+  }
+
+  // Validate Cloudinary credentials (not needed for dry run)
+  if (!process.env.CLOUDINARY_URL) {
+    console.error(
+      "Error: CLOUDINARY_URL environment variable is not set.\n" +
+        "Set it like: CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name",
+    );
+    process.exit(1);
+  }
 
   if (toUpload.length === 0) {
     console.log(`Done. 0 uploaded, ${unchanged} unchanged.`);
@@ -261,6 +277,12 @@ async function main() {
       default: false,
       describe: "Re-upload all files, ignoring manifest hashes (requires -m)",
     })
+    .option("dry-run", {
+      alias: "n",
+      type: "boolean",
+      default: false,
+      describe: "Show what would be uploaded without uploading",
+    })
     .option("verbose", {
       alias: "v",
       type: "boolean",
@@ -291,6 +313,7 @@ async function main() {
     force: appArgs.force,
     verbose: appArgs.verbose,
     useManifest: appArgs.manifest,
+    dryRun: appArgs.dryRun,
     pathIdRoot: appArgs.root,
   });
 }
