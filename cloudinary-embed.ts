@@ -303,7 +303,10 @@ async function main() {
         "  $0 -d ./images -m\n" +
         "    Save manifest to skip unchanged files on next run\n\n" +
         "  $0 -d ./images -m -f -v\n" +
-        "    Re-upload all files (ignore manifest) and print URLs",
+        "    Re-upload all files (ignore manifest) and print URLs\n\n" +
+        "Environment:\n" +
+        "  CLOUDINARY_URL  Required. Format: cloudinary://api_key:api_secret@cloud_name\n" +
+        "                  Find it at: https://console.cloudinary.com/settings/api-keys",
     )
     .version(false)
     .strict()

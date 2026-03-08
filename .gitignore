@@ -1,6 +1,9 @@
 # Claude Code local settings (tool permissions, etc.)
 .claude/
 
+# Environment variables (credentials)
+.env
+
 # Log files
 *.log
 
