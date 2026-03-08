@@ -50,6 +50,12 @@ To print public IDs and URLs for all files (useful for embedding in webpages):
 node cloudinary-embed.ts --directory ./your-images --verbose
 ```
 
+## HEIC support
+
+HEIC/HEIF images (common on iPhones) are supported. Uploaded URLs include `f_auto,q_auto` transformations, so Cloudinary automatically serves a compatible format (WebP/JPEG) to browsers that don't support HEIC natively (e.g., Windows browsers).
+
+To test HEIC delivery on macOS, use Microsoft Edge — it does not support HEIC natively, so Cloudinary will serve a converted format just like it would on Windows.
+
 ## How it works
 
 - Scans `--directory` recursively for image files (`.jpg`, `.png`, `.webp`, `.svg`, etc.)
